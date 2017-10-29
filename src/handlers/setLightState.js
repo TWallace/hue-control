@@ -1,9 +1,11 @@
 'use strict'
 
-let config = require('config-yml')
 let http = require('request-promise')
 let Promise = require('bluebird')
+let _ = require('lodash')
 let getLights = require('../common/getLights.js')
+const LIGHT_DELAY_TIME = 10000
+let interval
 
 function updateLightColor(request, context) {
   let headers = request.headers
@@ -31,26 +33,36 @@ function updateLightColor(request, context) {
   })
 }
 
+function updateCameras(request, context, filteredLights) {
+  let body = request.body
+  let colors = body.colors
+  return Promise.map(filteredLights, function (light) {
+    let startingIndex = _.random(0, colors.length - 1)
+    let color = colors[startingIndex]
+    console.log(`Changing ${light.name} color to ${color}`)
+    return updateLightColor(_.merge(request, {
+      color: color,
+      light: light
+    }), context)
+  })
+}
+
 function setLightState (request, context) {
   let body = request.body
   let lights = body.lights
-  let colors = body.colors
 
   return getLights(request)
   .then(function (response) {
     let filteredLights = _.filter(response, function (light) {
       return lights.indexOf(light.name) > -1
     })
-    setInterval(function () {
-      return Promise.map(filteredLights, function (light) {
-        let startingIndex = _.random(0, colors.length - 1)
-        let color = colors[startingIndex]
-        return updateLightColor(_.merge(request, {
-          color: color,
-          light: light
-        }), context)
-      })
-    }, body.transitionTime)
+    clearInterval(interval)
+    return updateCameras(request, context, filteredLights)
+    .then(function () {
+      interval = setInterval(function () {
+        return updateCameras(request, context, filteredLights)
+      }, body.transitionTime + LIGHT_DELAY_TIME)
+    })
   })
 }
 
