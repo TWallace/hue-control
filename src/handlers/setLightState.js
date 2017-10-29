@@ -33,34 +33,68 @@ function updateLightColor(request, context) {
   })
 }
 
+function getNextColor(colors, currentIndex) {
+  return currentIndex === colors.length - 1
+    ? 0
+    : currentIndex + 1
+}
+
 function updateCameras(request, context, filteredLights) {
   let body = request.body
   let colors = body.colors
   return Promise.map(filteredLights, function (light) {
-    let startingIndex = _.random(0, colors.length - 1)
-    let color = colors[startingIndex]
+    // todo: instead of random, choose next color from original array
+
+    let color = colors[light.nextColorIndex]
     console.log(`Changing ${light.name} color to ${color}`)
     return updateLightColor(_.merge(request, {
       color: color,
       light: light
     }), context)
+    .then(function () {
+      light.nextColorIndex = getNextColor(colors, light.nextColorIndex)
+    })
+  })
+  .then(function () {
+    return filteredLights
   })
 }
 
 function setLightState (request, context) {
   let body = request.body
   let lights = body.lights
+  let colors = body.colors
 
   return getLights(request)
   .then(function (response) {
     let filteredLights = _.filter(response, function (light) {
       return lights.indexOf(light.name) > -1
     })
+
+    let usedColors = []
+    function getUniqueRandomColor(colors) {
+      let colorIndex = _.random(0, colors.length - 1)
+      if (usedColors.indexOf(colorIndex) > -1) {
+        return getUniqueRandomColor(colors)
+      } else {
+        usedColors.push(colorIndex)
+        return colorIndex
+      }
+    }
+
+    _.forEach(filteredLights, function (light) {
+      light.startingColorIndex = getUniqueRandomColor(colors)
+      light.nextColorIndex = getNextColor(colors, light.startingColorIndex)
+    })
     clearInterval(interval)
     return updateCameras(request, context, filteredLights)
-    .then(function () {
+    .then(function (lights) {
+      filteredLights = lights
       interval = setInterval(function () {
         return updateCameras(request, context, filteredLights)
+        .then(function (lights) {
+          filteredLights = lights
+        })
       }, body.transitionTime + LIGHT_DELAY_TIME)
     })
   })
