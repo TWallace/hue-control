@@ -48,7 +48,8 @@ When this endpoint is called, it selects a random color from the colors array an
 - lights - array of light names which you want to affect
 - colors - Array of colors. Each value is an array of x/y coordinates. x is first, y is second.
 - transitionTime - Time in milliseconds for changing from one color to the next.
+- lightHoldTime - How long in milliseconds for the light to stay on each color.
+- synchronized - Forces all lights to use the same color at the same time.
 
 ### Roadmap
-- Allow setting all lights to rotate through the same color at the same time.
 - Add error handling. Currently will error if more lights than colors are passed in, or if light names are used that don't exist.
