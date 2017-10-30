@@ -37,7 +37,9 @@ Make a POST request to:
         [0.40, 0.54],
         [0.57, 0.40]
     ],
-    "transitionTime": 10000
+    "transitionTime": 10000,
+    "lightHoldTime: 10000,
+    "synchronized": false
 }
 ```
 The colors listed above are along the edges of the gamuts available for Hue lights, as seen here: https://developers.meethue.com/documentation/core-concepts#color_gets_more_complicated. These colors are listed sequentially in a clockwise direction starting with red on the bottom right of the gamuts. This app will rotate colors sequentially through the colors array. The given list above will ensure that colors transition from one highly saturated color to another, without transitioning over the white section in the middle of the gamut.
