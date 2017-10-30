@@ -4,7 +4,7 @@ let http = require('request-promise')
 let Promise = require('bluebird')
 let _ = require('lodash')
 let getLights = require('../common/getLights.js')
-const LIGHT_DELAY_TIME = 10000
+const LIGHT_DELAY_TIME = 30000
 let interval
 
 function updateLightColor(request, context) {
@@ -43,8 +43,6 @@ function updateCameras(request, context, filteredLights) {
   let body = request.body
   let colors = body.colors
   return Promise.map(filteredLights, function (light) {
-    // todo: instead of random, choose next color from original array
-
     let color = colors[light.nextColorIndex]
     console.log(`Changing ${light.name} color to ${color}`)
     return updateLightColor(_.merge(request, {
@@ -83,7 +81,11 @@ function setLightState (request, context) {
     }
 
     _.forEach(filteredLights, function (light) {
-      light.startingColorIndex = getUniqueRandomColor(colors)
+      if (body.synchronized) {
+        light.startingColorIndex = filteredLights[0].startingColorIndex || getUniqueRandomColor(colors)
+      } else {
+        light.startingColorIndex = getUniqueRandomColor(colors)
+      }
       light.nextColorIndex = getNextColor(colors, light.startingColorIndex)
     })
     clearInterval(interval)
@@ -95,7 +97,7 @@ function setLightState (request, context) {
         .then(function (lights) {
           filteredLights = lights
         })
-      }, body.transitionTime + LIGHT_DELAY_TIME)
+      }, body.transitionTime + (body.lightHoldTime || LIGHT_DELAY_TIME))
     })
   })
 }
