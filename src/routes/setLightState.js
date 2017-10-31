@@ -22,6 +22,29 @@ module.exports = function (app) {
       res.send('Must specify colors array')
     }
 
+    _.forEach(body.colors, function (colors) {
+      // ensure each color value is an array of 2 floats, each one between 0 and 1
+      let errorMessage
+
+      if (colors.length !== 2) {
+        isError = true
+        errorMessage = `${colors} is not a valid color value. Must be an array with length of 2`
+      }
+
+      _.forEach(colors, function (color) {
+        if (!parseFloat(color)) {
+          errorMessage = `${color} is not a valid color value. Must be a decimal between 0 and 1.`
+        } else if (color < 0 || color > 1) {
+          errorMessage = `${color} is not a valid color value. Must be between 0 and 1`
+        }
+      })
+
+      if (errorMessage) {
+        res.statusCode = 400
+        res.send(errorMessage)
+      }
+    })
+
     if (body.lights.length > body.colors.length && !body.synchronized) {
       res.statusCode = 400
       res.send('Number of lights must be >= number of colors, unless synchronized is set to true')
