@@ -54,4 +54,4 @@ When this endpoint is called, it selects a random color from the colors array an
 - synchronized - Forces all lights to use the same color at the same time.
 
 ### Roadmap
-- Add error handling. Currently will error if more lights than colors are passed in, or if light names are used that don't exist.
+- Add error handling to ensure headers are passed in
