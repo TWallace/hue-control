@@ -27,7 +27,6 @@ module.exports = function (app) {
       let errorMessage
 
       if (colors.length !== 2) {
-        isError = true
         errorMessage = `${colors} is not a valid color value. Must be an array with length of 2`
       }
 
