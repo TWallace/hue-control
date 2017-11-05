@@ -5,7 +5,7 @@ npm install
 
 ### Usage
 You'll need to get the api key for your Philips Smart Bridge, and the IP address of it. You'll send these values in the headers for each request. To start server run:
-```node src/app.js```. By default, this will start the server on port 3001, but this can be changed vis app.js. 
+```node src/app.js```. By default, this will start the server on port 3001, but this can be changed via app.js. 
 
 Each API call will require these headers:
 ```
