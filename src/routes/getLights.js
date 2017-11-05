@@ -16,7 +16,23 @@ let createContext = require('../common/createContext.js')
 module.exports = function(app) {
   app.get('/getLights', function(req, res) {
     let context = createContext(req)
+    let headers = req.headers
     context.span = createSpan(req, context)
+
+    if (!headers.apikey) {
+      res.statusCode = 400
+      res.send('Must specify apikey in headers.')
+    }
+
+    if (!headers.hueip) {
+      res.statusCode = 400
+      res.send('Must specify hueip in headers.')
+    }
+
+    if (res.statusCode !== 200) {
+      return res
+    }
+
     return getLights(req, context)
     .then(function(response) {
       if (response) {

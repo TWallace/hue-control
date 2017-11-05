@@ -11,6 +11,17 @@ module.exports = function (app) {
     let context = createContext(req)
     context.span = createSpan(req, context)
     let body = req.body
+    let headers = req.headers
+
+    if (!headers.apikey) {
+      res.statusCode = 400
+      res.send('Must specify apikey in headers.')
+    }
+
+    if (!headers.hueip) {
+      res.statusCode = 400
+      res.send('Must specify hueip in headers.')
+    }
 
     if (!body.lights.length || !Array.isArray(body.lights)) {
       res.statusCode = 400

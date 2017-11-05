@@ -46,12 +46,11 @@ The colors listed above are along the edges of the gamuts available for Hue ligh
 
 When this endpoint is called, it selects a random color from the colors array and assigns that to each light. It will not select the same color for any light, unless you specify synchonized as true, in which case all lights will select the same color.
 
-##### Params
-- lights - array of light names which you want to affect
-- colors - Array of colors. Each value is an array of x/y coordinates. x is first, y is second.
-- transitionTime - Time in milliseconds for changing from one color to the next.
-- lightHoldTime - How long in milliseconds for the light to stay on each color.
-- synchronized - Forces all lights to use the same color at the same time.
+##### Params (bold = required)
+- **lights** - array of light names which you want to affect
+- **colors** - Array of colors. Each value is an array of x/y coordinates. x is first, y is second.
+- transitionTime - Time in milliseconds for changing from one color to the next. Defaults to 15 seconds if not specified.
+- lightHoldTime - How long in milliseconds for the light to stay on each color. Defaults to 15 seconds if not specified.
+- synchronized - Forces all lights to use the same color at the same time. Cannot be set to true if sequential is set to true.
+- sequential - Forces each light to cycle through the colors sequentially. lights[0] starts at colors[0], lights[1] starts at colors[1] and so on. Cannot be set to true if synchronized is set to true.
 
-### Roadmap
-- Add error handling to ensure headers are passed in
