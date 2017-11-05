@@ -16,14 +16,14 @@ let createContext = require('../common/createContext.js')
 module.exports = function(app) {
   app.get('/getLights', function(req, res) {
     let context = createContext(req)
-    let span = createSpan(req, context)
+    context.span = createSpan(req, context)
     return getLights(req, context)
     .then(function(response) {
       if (response) {
-        span.addTags({
+        context.span.addTags({
           httpResponse: 200
         })
-        span.finish()
+        context.span.finish()
         res.status(200).send({
           success: true
         })
@@ -31,11 +31,11 @@ module.exports = function(app) {
       res.status(500).send()
     })
     .catch(function(error) {
-      span.addTags({
+      context.span.addTags({
         error: true,
         errorDetails: error
       })
-      span.finish()
+      context.span.finish()
       res.status(error.statusCode || 500).send(error.message)
     })
   })

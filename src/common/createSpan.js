@@ -2,7 +2,7 @@
 
 let tracer = require('ctrace-js')
 
-function createSpan(req, context) {
+module.exports = function (req, context) {
   // context = tracer.extract(tracer.FORMAT_HTTP_HEADERS, req.headers)
   return tracer.startSpan('GetLights', {
     childOf: context,
@@ -14,5 +14,3 @@ function createSpan(req, context) {
     }
   })
 }
-
-module.exports = createSpan

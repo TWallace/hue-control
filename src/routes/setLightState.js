@@ -9,7 +9,7 @@ var _ = require('lodash')
 module.exports = function (app) {
   app.post('/setLightState', function (req, res) {
     let context = createContext(req)
-    let span = createSpan(req, context)
+    context.span = createSpan(req, context)
     let body = req.body
 
     if (!body.lights.length || !Array.isArray(body.lights)) {
@@ -22,19 +22,36 @@ module.exports = function (app) {
       res.send('Must specify colors array')
     }
 
+    if (body.lightHoldTime || body.lightHoldTime === 0) {
+      if (isNaN(body.lightHoldTime) || body.lightHoldTime < 100) {
+        res.statusCode = 400
+        res.send('lightHoldTime must be a number >= 100')
+      }
+    }
+
+    if (body.transitionTime || body.transitionTime === 0) {
+      if (isNaN(body.transitionTime) || body.transitionTime < 500) {
+        res.statusCode = 400
+        res.send('transitionTime must be a number >= 500')
+      }
+    }
+
     _.forEach(body.colors, function (colors) {
       // ensure each color value is an array of 2 floats, each one between 0 and 1
       let errorMessage
 
-      if (colors.length !== 2) {
+      if (colors.length < 2 || colors.length > 3) {
         errorMessage = `${colors} is not a valid color value. Must be an array with length of 2`
       }
 
-      _.forEach(colors, function (color) {
-        if (!parseFloat(color)) {
-          errorMessage = `${color} is not a valid color value. Must be a decimal between 0 and 1.`
-        } else if (color < 0 || color > 1) {
-          errorMessage = `${color} is not a valid color value. Must be between 0 and 1`
+      _.forEach(colors, function (color, index) {
+        // only need to validate first 2 items in array, as third one is optional color description
+        if (index < 2) {
+          if (!parseFloat(color)) {
+            errorMessage = `${color} is not a valid color value. Must be a decimal between 0 and 1.`
+          } else if (color < 0 || color > 1) {
+            errorMessage = `${color} is not a valid color value. Must be between 0 and 1`
+          }
         }
       })
 
@@ -44,9 +61,18 @@ module.exports = function (app) {
       }
     })
 
+    if (body.synchronized && body. sequential) {
+      res.statusCode = 400
+      res.send('Cannot specify both sequential and synchronized as true')
+    }
+
     if (body.lights.length > body.colors.length && !body.synchronized) {
       res.statusCode = 400
       res.send('Number of lights must be >= number of colors, unless synchronized is set to true')
+    }
+
+    if (res.statusCode !== 200) {
+      return res
     }
 
     return getLights(req, context)
@@ -63,17 +89,18 @@ module.exports = function (app) {
 
       return setLightState(req, context)
       .then(function (response) {
-        span.addTags({
+        context.span.addTags({
           httpResponse: 200
         })
-        span.finish()
+        context.span.finish()
         res.status(200).send(response)
       })
       .catch(function (error) {
-        span.addTags({
-          error: error
+        context.span.addTags({
+          error: true,
+          errorDetails: error
         })
-        span.finish()
+        context.span.finish()
         res.status(error.statusCode || 500).send(error.message)
       })
     })

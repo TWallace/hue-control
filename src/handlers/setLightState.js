@@ -4,8 +4,12 @@ let http = require('request-promise')
 let Promise = require('bluebird')
 let _ = require('lodash')
 let getLights = require('../common/getLights.js')
-const LIGHT_DELAY_TIME = 30000
+let tracer = require('ctrace-js')
 let interval
+let defaults = {
+  transitionTime: 15000,
+  lightHoldTime: 15000
+}
 
 function updateLightColor(request, context) {
   let headers = request.headers
@@ -15,11 +19,12 @@ function updateLightColor(request, context) {
     uri: `http://${headers.hueip}/api/${headers.apikey}/lights/${request.light.id}/state`,
     body: {
       xy: request.color,
-      transitiontime: body.transitionTime / 100
+      transitiontime: Math.round((body.transitionTime || defaults.transitionTime) / 100)
     },
     json: true,
     traceContext: context
   }
+  tracer.info(context, `Updating Light`, { options: _.omit(options, ['traceContext']) })
   return http.put(options)
   .then(function(response) {
     if (_.get(response, '[0].error')) {
@@ -44,9 +49,8 @@ function updateCameras(request, context, filteredLights) {
   let colors = body.colors
   return Promise.map(filteredLights, function (light) {
     let color = colors[light.nextColorIndex]
-    console.log(`Changing ${light.name} color to ${color}`)
     return updateLightColor(_.merge(request, {
-      color: color,
+      color: color.slice(0, 2),
       light: light
     }), context)
     .then(function () {
@@ -62,11 +66,19 @@ function setLightState (request, context) {
   let body = request.body
   let lights = body.lights
   let colors = body.colors
+  let filteredLights = _.map(lights, function (light) {
+    return { name: light }
+  })
 
   return getLights(request)
   .then(function (response) {
-    let filteredLights = _.filter(response, function (light) {
-      return lights.indexOf(light.name) > -1
+    _.map(filteredLights, function (light) {
+      let responseLight = _.find(response, function (l) {
+        return l.name === light.name
+      })
+      if (responseLight) {
+        light.id = responseLight.id
+      }
     })
 
     let usedColors = []
@@ -80,9 +92,11 @@ function setLightState (request, context) {
       }
     }
 
-    _.forEach(filteredLights, function (light) {
+    _.forEach(filteredLights, function (light, index) {
       if (body.synchronized) {
         light.startingColorIndex = filteredLights[0].startingColorIndex || getUniqueRandomColor(colors)
+      } else if (body.sequential) {
+        light.startingColorIndex = index
       } else {
         light.startingColorIndex = getUniqueRandomColor(colors)
       }
@@ -97,8 +111,21 @@ function setLightState (request, context) {
         .then(function (lights) {
           filteredLights = lights
         })
-      }, body.transitionTime + (body.lightHoldTime || LIGHT_DELAY_TIME))
+      }, body.transitionTime + (body.lightHoldTime || defaults.lightHoldTime))
     })
+  })
+  .catch(function (error) {
+    if (error.message && error.stack) {
+      let err = {
+        stack: error.stack,
+        message: error.message
+      }
+      tracer.error(context, 'Error setting light state', {
+        err
+      })
+      throw err
+    }
+    throw error
   })
 }
 
