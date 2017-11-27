@@ -36,6 +36,9 @@ function updateLightColor(request, context) {
     })
     return lights
   })
+  .catch(function (error) {
+    console.error('Unable to update light color:', JSON.stringify(error))
+  })
 }
 
 function getNextColor(colors, currentIndex) {
