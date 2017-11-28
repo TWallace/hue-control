@@ -47,7 +47,7 @@ function getNextColor(colors, currentIndex) {
     : currentIndex + 1
 }
 
-function updateCameras(request, context, filteredLights) {
+function updateLights(request, context, filteredLights) {
   let body = request.body
   let colors = body.colors
   return Promise.map(filteredLights, function (light) {
@@ -106,11 +106,11 @@ function setLightState (request, context) {
       light.nextColorIndex = getNextColor(colors, light.startingColorIndex)
     })
     clearInterval(interval)
-    return updateCameras(request, context, filteredLights)
+    return updateLights(request, context, filteredLights)
     .then(function (lights) {
       filteredLights = lights
       interval = setInterval(function () {
-        return updateCameras(request, context, filteredLights)
+        return updateLights(request, context, filteredLights)
         .then(function (lights) {
           filteredLights = lights
         })
