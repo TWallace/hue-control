@@ -51,5 +51,10 @@ module.exports = function (app) {
       context.span.finish()
       res.status(200).send(response)
     })
+    .catch(function (error) {
+      res.statusCode = 400
+      res.send(error.message)
+      return res
+    })
   })
 }

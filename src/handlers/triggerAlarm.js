@@ -44,9 +44,7 @@ function triggerAlarm (req, context) {
     body.filteredRooms = _.filter(body.rooms, function (room) {
       let matchedRoom = _.find(response, {name: room})
       if (!matchedRoom) {
-        res.statusCode = 400
-        res.send(`${room} is an invalid room name`)
-        return res
+        throw new Error(`${room} is an invalid room name`)
       } else {
         filteredRooms.push({
           name: room,
