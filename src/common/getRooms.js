@@ -4,10 +4,10 @@ let http = require('request-promise')
 let _ = require('lodash')
 
 function getLights (request, context) {
-  let headers = request.headers
+  let body = request.body
   let options = {
     method: 'GET',
-    uri: `http://${headers.hueip}/api/${headers.apikey}/groups`,
+    uri: `http://${body.hueip}/api/${body.apikey}/groups`,
     json: true,
     traceContext: context
   }

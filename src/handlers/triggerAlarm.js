@@ -11,11 +11,10 @@ let timeout
 let ALARM_END = 300000 // five minutes
 
 function triggerRoomLight(request, context) {
-  let headers = request.headers
   let body = request.body
   let options = {
     method: 'PUT',
-    uri: `http://${headers.hueip}/api/${headers.apikey}/groups/${body.room.id}/action`,
+    uri: `http://${body.hueip}/api/${body.apikey}/groups/${body.room.id}/action`,
     body: {
       on: true,
       bri: 254, // 0-254
@@ -38,7 +37,6 @@ function triggerRoomLight(request, context) {
 
 function triggerAlarm (req, context) {
   let body = req.body
-  let headers = req.headers
   // first get rooms using body.rooms array to get the ids of those rooms
   return getRooms(req, context)
   .then(function (response) {
@@ -58,7 +56,7 @@ function triggerAlarm (req, context) {
     })
     return Promise.map(filteredRooms, function (room) {
       return getRoomLightState({
-        headers,
+        body,
         groupId: room.id
       }, context)
       .then(function (lights) {

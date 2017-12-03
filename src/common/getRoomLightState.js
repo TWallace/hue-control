@@ -5,10 +5,10 @@ let _ = require('lodash')
 let Promise = require('bluebird')
 
 function getRoomLightState (request, context) {
-  let headers = request.headers
+  let body = request.body
   let options = {
     method: 'GET',
-    uri: `http://${headers.hueip}/api/${headers.apikey}/groups/${request.groupId}`,
+    uri: `http://${body.hueip}/api/${body.apikey}/groups/${request.groupId}`,
     json: true,
     traceContext: context
   }
@@ -22,7 +22,7 @@ function getRoomLightState (request, context) {
       })
     })
     return Promise.map(response.lights, function (light) {
-      options.uri = `http://${headers.hueip}/api/${headers.apikey}/lights/${light}`
+      options.uri = `http://${body.hueip}/api/${body.apikey}/lights/${light}`
       return http.get(options)
     })
   })
