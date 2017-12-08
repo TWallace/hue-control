@@ -4,7 +4,7 @@ let setLightState = require('../handlers/setLightState.js')
 let createSpan = require('../common/createSpan.js')
 let createContext = require('../common/createContext.js')
 let getLights = require('../handlers/getLights.js')
-var _ = require('lodash')
+let _ = require('lodash')
 
 module.exports = function (app) {
   app.post('/setLightState', function (req, res) {

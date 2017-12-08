@@ -94,10 +94,10 @@ function setLightState (request, context) {
         return colorIndex
       }
     }
-
+    let startingColor = getUniqueRandomColor(colors)
     _.forEach(filteredLights, function (light, index) {
       if (body.synchronized) {
-        light.startingColorIndex = filteredLights[0].startingColorIndex || getUniqueRandomColor(colors)
+        light.startingColorIndex = startingColor
       } else if (body.sequential) {
         light.startingColorIndex = index
       } else {
