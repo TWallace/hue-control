@@ -73,6 +73,7 @@ function setLightState (request, context) {
     return { name: light }
   })
 
+  // TODO: route already runs getLights. just pass in results from route in request
   return getLights(request)
   .then(function (response) {
     _.map(filteredLights, function (light) {
