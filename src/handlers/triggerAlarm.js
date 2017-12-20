@@ -8,7 +8,7 @@ let getRooms = require('../common/getRooms.js')
 let revertLightState = require('../common/revertLightState.js')
 let Promise = require('bluebird')
 let timeout
-let ALARM_END = 300000 // five minutes
+let ALARM_END = 30000 // five minutes
 
 function triggerRoomLight(request, context) {
   let body = request.body
